@@ -20,6 +20,7 @@ function PaymentForm() {
 
   const [loading, setLoading] = useState(false);
   const [userReady, setUserReady] = useState(false);
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || '';
 
   useEffect(() => {
     if (!telegramId) {
@@ -30,7 +31,7 @@ function PaymentForm() {
     const fetchUser = async () => {
       try {
         const res = await axios.get(
-          `https://bingo-backend-8929.onrender.com/api/payment/userinfo?telegramId=${telegramId}`
+          `${BACKEND_URL}/api/payment/userinfo?telegramId=${telegramId}`
         );
 
         const user = res.data;
@@ -106,7 +107,7 @@ const handleSubmit = async (e) => {
 
   try {
     const res = await axios.post(
-      "https://bingo-backend-8929.onrender.com/api/payment/accept-payment",
+      `${BACKEND_URL}/api/payment/accept-payment`,
       {
         ...updatedForm,
         tx_ref,

@@ -84,10 +84,11 @@ function Bingo({ isBlackToggleOn, setCartelaIdInParent, cartelaIds, socket, othe
   const refreshBtnBg    = isBlackToggleOn ? "bg-blue-700"  : "bg-blue-500";
   const startBtnEnabledBg  = isBlackToggleOn ? "bg-orange-600 hover:bg-orange-700" : "bg-orange-500 hover:bg-orange-600";
   const startBtnDisabledBg = "bg-gray-600 cursor-not-allowed";
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || '';
 
   const fetchUserData = async () => {
     try {
-        const res  = await fetch(`https://bingoback.bingoogame.com/api/users/getUser?telegramId=${telegramId}`);
+        const res  = await fetch(`${BACKEND_URL}/api/users/getUser?telegramId=${telegramId}`);
         const data = await res.json();
         if (res.ok) {
             setUserBalance(data.balance);
@@ -523,7 +524,7 @@ function Bingo({ isBlackToggleOn, setCartelaIdInParent, cartelaIds, socket, othe
           : dbUsername || `User ${telegramId}`;
 
       // ─── FIX P0: Use env var instead of hardcoded URL ──────────────────────
-      const response = await fetch(`https://bingoback.bingoogame.com/api/games/start`, {
+      const response = await fetch(`${BACKEND_URL}/api/games/start`, {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({ gameId, telegramId, username: finalUsername, cardIds: currentCartelaIds }),

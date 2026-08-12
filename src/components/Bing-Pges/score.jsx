@@ -28,6 +28,7 @@ export default function Score({ isBlackToggleOn }) {
   const handleNext = () => {
     if (end < filtered.length) setPage(page + 1);
   };
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || '';
 
   useEffect(() => {
     if (page > 0 && start >= filtered.length) {
@@ -51,7 +52,7 @@ export default function Score({ isBlackToggleOn }) {
     const fetchPlayers = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`https://bingoback.bingoogame.com/api/Score?time=${timeKeys[activeTab]}`);
+        const res = await fetch(`${BACKEND_URL}/api/Score?time=${timeKeys[activeTab]}`);
 
         if (res.status === 429) {
           const { retryAfter: serverRetry, error } = await res.json();

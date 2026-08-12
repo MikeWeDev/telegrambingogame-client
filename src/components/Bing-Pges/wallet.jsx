@@ -35,6 +35,7 @@ export default function Wallet({ isBlackToggleOn }) {
   // Rate limit handling states for history
   const [retryAfterHistory, setRetryAfterHistory] = useState(0);
   const [rateLimitErrorHistory, setRateLimitErrorHistory] = useState('');
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || '';
 
   // Save telegramId to localStorage if changed
   useEffect(() => {
@@ -75,7 +76,7 @@ useEffect(() => {
     setRetryAfterHistory(0);
   }
 
-  fetch(`https://bingoback.bingoogame.com/api/wallet?telegramId=${telegramId}`)
+  fetch(`${BACKEND_URL}/api/wallet?telegramId=${telegramId}`)
     .then(async res => {
       if (res.status === 429) {
         const json = await res.json();

@@ -40,6 +40,7 @@ export default function WithdrawForm() {
 
   const [balance, setBalance] = useState(null);
   const [balanceLoading, setBalanceLoading] = useState(false);
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || '';
 
   useEffect(() => {
     const user = searchParams.get("user");
@@ -71,7 +72,7 @@ export default function WithdrawForm() {
       setBalanceLoading(true);
       try {
         const res = await fetch(
-          `https://bingo-backend-8929.onrender.com/api/payment/balance?telegramId=${telegramId}`
+          `${BACKEND_URL}/api/payment/balance?telegramId=${telegramId}`
         );
         if (!res.ok) throw new Error("Failed to fetch balance");
 
@@ -138,7 +139,7 @@ export default function WithdrawForm() {
 
     try {
       const res = await fetch(
-        "https://bingo-backend-8929.onrender.com/api/payment/request-withdrawal",
+        `${BACKEND_URL}/api/payment/request-withdrawal`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

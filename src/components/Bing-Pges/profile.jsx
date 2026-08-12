@@ -24,6 +24,7 @@ export default function Profile({ setIsBlackToggleOn, isBlackToggleOn }) {
   const [refreshBlocked, setRefreshBlocked] = useState(false);
   const [refreshCountdown, setRefreshCountdown] = useState(0);
   const lastRefreshTimeRef = useRef(0);
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || '';
 
   // Initialize toggle from localStorage on mount
   useEffect(() => {
@@ -72,7 +73,7 @@ export default function Profile({ setIsBlackToggleOn, isBlackToggleOn }) {
     setLoading(true);
     setRateLimitError('');
     setRetryAfter(0);
-    fetch(`https://bingoback.bingoogame.com/api/profile/${id}`)
+    fetch(`${BACKEND_URL}/api/profile/${id}`)
       .then(async (res) => {
         if (res.status === 429) {
           const json = await res.json();
@@ -118,7 +119,7 @@ export default function Profile({ setIsBlackToggleOn, isBlackToggleOn }) {
   /////////////////////////////////////////////////////////////////////////
 
   const handleInvite = () => {
-    const inviteLink = 'https://t.me/danbingosbot'; // replace with your bot link
+    const inviteLink = 'https://t.me/bossbingobot'; // replace with your bot link
     const shareText = encodeURIComponent('Check out this awesome bot: ' + inviteLink);
     const telegramShareUrl = `https://t.me/share/url?text=${shareText}`;
     window.open(telegramShareUrl, '_blank');

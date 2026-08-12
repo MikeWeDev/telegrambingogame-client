@@ -7,6 +7,7 @@ function PaymentSuccess() {
   const [txRef, setTxRef] = useState(null);
   const [amount, setAmount] = useState(null);
   const navigate = useNavigate();
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || '';
 
   useEffect(() => {
     const tx_ref = localStorage.getItem("tx_ref");
@@ -23,7 +24,7 @@ function PaymentSuccess() {
     const checkPayment = async () => {
       try {
         const res = await axios.get(
-          `https://bingoback.bingoogame.com/api/payment/check-payment/${tx_ref}`
+          `${BACKEND_URL}/api/payment/check-payment/${tx_ref}`
         );
 
         if (res.data.status === "success") {

@@ -13,6 +13,7 @@ export default function CheckWithdrawalPage() {
 
   // Indicates if current ref is from user input or from URL/localStorage
   const [isManualRef, setIsManualRef] = useState(false);
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || '';
 
   // Fetch tx_ref from URL or localStorage once on mount
  useEffect(() => {
@@ -32,7 +33,7 @@ export default function CheckWithdrawalPage() {
     setStatus("checking");
     for (let i = 0; i < 3; i++) {
       try {
-        const res = await axios.get(`https://bingoback.bingoogame.com/api/payment/verify/${ref}`);
+        const res = await axios.get(`${BACKEND_URL}/api/payment/verify/${ref}`);
         if (res.data.status === "success") {
           setStatus("success");
           return;
@@ -49,7 +50,7 @@ export default function CheckWithdrawalPage() {
   const handleRetry = async () => {
     if (manualTries >= 3) return;
     try {
-      const res = await axios.get(`https://bingoback.bingoogame.com/api/payment/verify/${txRef}`);
+      const res = await axios.get(`${BACKEND_URL}/api/payment/verify/${txRef}`);
       if (res.data.status === "success") {
         setStatus("success");
       } else {
@@ -76,7 +77,7 @@ export default function CheckWithdrawalPage() {
       setMaxReached(false);
       setStatus("checking");
       try {
-        const res = await axios.get(`https://bingoback.bingoogame.com/api/payment/verify/${ref}`);
+        const res = await axios.get(`${BACKEND_URL}/api/payment/verify/${ref}`);
         if (res.data.status === "success") {
           setStatus("success");
         } else {

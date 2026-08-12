@@ -4,6 +4,9 @@ import { useSearchParams } from 'react-router-dom';
 import { ChevronLeft, RefreshCw, Search, Clock, Award, Calendar } from 'lucide-react';
 import { formatDate, formatTime } from '../utils/formatDate';
 
+// Setup environment variable (falls back to production URL if not defined)
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || '';
+
 const historyTabs = ['Recent Games', 'My Games'];
 const betTabs = ['10 Birr', '20 Birr', '50 Birr', '100 Birr'];
 const betValues = ['10', '20', '50', '100'];
@@ -63,8 +66,9 @@ export default function History({ isBlackToggleOn }) {
     setRetryAfter(0);
 
     try {
+      // ✅ Updated fetch call using environment variable
       const res = await fetch(
-        `https://bingoback.bingoogame.com/api/history?user=${telegramId}&bet=${selectedBet}&tab=${activeTab}`
+        `${BACKEND_URL}/api/history?user=${telegramId}&bet=${selectedBet}&tab=${activeTab}`
       );
 
       if (res.status === 429) {
