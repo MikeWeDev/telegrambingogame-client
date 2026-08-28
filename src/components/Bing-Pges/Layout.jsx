@@ -41,19 +41,19 @@ export default function Layout({
 
 
     // --- 2. Emit only when leaving "/" to a NON-/game route (via React Router) ---
-    if (isLeavingRootToNonGame) {
+    // FIX: Exclude /game/* routes — navigating INTO a game should NOT unselect cards.
+    // The game page needs the card to remain held on the server so other players see it taken.
+    if (isLeavingRootToNonGame && !currentPath.startsWith("/game")) {
       console.log("✅ LAYOUT EMIT: unselectCardOnLeave on route change!");
       if (socket && socket.connected) {
         socket.emit("unselectCardOnLeave", {
           gameId,
           telegramId,
-          // We don't strictly need to send IDs here because the backend 
-          // finds them via Redis, but we remove the 'cartelaId' reference to avoid errors.
         });
-        
+
         // ✅ FIX: Call the cleanup function immediately
         if (typeof onClearClientCardState === "function") {
-          onClearClientCardState(); 
+          onClearClientCardState();
         }
       } else {
         console.warn("Layout: Socket not connected or not available for emit on route change.");
@@ -63,19 +63,21 @@ export default function Layout({
     prevPathRef.current = currentPath;
 
 
-    // --- 3. Emit again ONLY if closing tab or refreshing while on "/" (beforeunload event) ---
+    // --- 3. Emit ONLY if closing tab/refreshing while on "/" AND card was selected ---
+    // FIX: Only emit if user actually held a card (non-empty cartelaIds).
+    // Guard against firing on every state-change re-render (React StrictMode double-invoke etc.)
     const handleBeforeUnload = () => {
-      if (location.pathname === "/") {
+      if (location.pathname === "/" && Array.isArray(cartelaIds) && cartelaIds.length > 0) {
         console.log("📤 LAYOUT EMIT: unselectCardOnLeave on beforeunload!");
         if (socket && socket.connected) {
           socket.emit("unselectCardOnLeave", {
             gameId,
             telegramId,
           });
-          
+
           // ✅ FIX: Call cleanup
           if (typeof onClearClientCardState === "function") {
-             onClearClientCardState(); 
+             onClearClientCardState();
           }
         }
       }
