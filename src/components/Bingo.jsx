@@ -387,7 +387,6 @@ function Bingo({ isBlackToggleOn, setCartelaIdInParent, cartelaIds, socket, othe
       socket.off("batchCardsUpdated", handleBatchCardsUpdated);
       socket.off("announcement");
       socket.off("balanceUpdated");
-      hasInitialSyncRun.current = false;
       if (reconnectTimerRef.current) clearInterval(reconnectTimerRef.current);
     };
 
