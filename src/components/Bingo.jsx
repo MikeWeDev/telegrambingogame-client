@@ -440,7 +440,7 @@ function Bingo({ isBlackToggleOn, setCartelaIdInParent, cartelaIds, socket, othe
       if (reconnectTimerRef.current) clearInterval(reconnectTimerRef.current);
     };
 
-  }, [telegramId, gameId, navigate, socket, setCartelaIdInParent, setOtherSelectedCards]);
+  }, [telegramId, gameId, navigate, socket]);
 
   // ── Game state listeners ───────────────────────────────────────────────────
   useEffect(() => {
