@@ -108,8 +108,23 @@ function Bingo({ isBlackToggleOn, setCartelaIdInParent, cartelaIds, socket, othe
   };
 
   function getTelegramInitData() {
-    if (!window.Telegram?.WebApp) return null;
-    return window.Telegram.WebApp.initData;
+    // 1. Try Telegram WebApp API (most common in real Telegram client)
+    if (window.Telegram?.WebApp?.initData) {
+      return window.Telegram.WebApp.initData;
+    }
+    // 2. Fallback: parse from hash/URL params (e.g., when opened in browser preview or older Telegram)
+    if (typeof window !== "undefined" && window.location) {
+      const hash = window.location.hash || "";
+      const search = window.location.search || "";
+      const combined = hash.startsWith("#") ? hash.slice(1) : hash;
+      if (combined.includes("query_id") || combined.includes("tgWebAppData") || combined.includes("initData")) {
+        return combined;
+      }
+      if (search.includes("initData")) {
+        return search.slice(1); // remove "?"
+      }
+    }
+    return null;
   }
 
   // ─── Main socket-listener effect ──────────────────────────────────────────
@@ -218,8 +233,9 @@ function Bingo({ isBlackToggleOn, setCartelaIdInParent, cartelaIds, socket, othe
     };
 
 // In performInitialGameSync, before emitting:
-    const performInitialGameSync = () => {
-      console.log("🔄 CLIENT: performInitialGameSync called");
+    const performInitialGameSync = (retryCount = 0) => {
+      const MAX_RETRIES = 10;
+      console.log("🔄 CLIENT: performInitialGameSync called (attempt:", retryCount + 1, ")");
       console.log("🔄 CLIENT: hasInitialSyncRun.current:", hasInitialSyncRun.current);
       console.log("🔄 CLIENT: socket.connected:", socket?.connected);
       console.log("🔄 CLIENT: telegramId:", telegramId);
@@ -242,13 +258,30 @@ function Bingo({ isBlackToggleOn, setCartelaIdInParent, cartelaIds, socket, othe
         return;
       }
       
+      // Ensure Telegram WebApp is fully ready before reading initData
+      if (window.Telegram?.WebApp?.ready) {
+        try { window.Telegram.WebApp.ready(); } catch (e) { /* noop */ }
+      }
+      
       const initData = getTelegramInitData();
       console.log("🔄 CLIENT: initData:", initData ? "present" : "NULL");
+      console.log("🔄 CLIENT: window.Telegram?.WebApp?.initData raw:", window.Telegram?.WebApp?.initData);
+      console.log("🔄 CLIENT: window.location.href:", window.location.href);
       
       if (!initData) {
-        console.warn("⚠️ initData unavailable — retrying in 500ms");
-        setTimeout(performInitialGameSync, 500); // retry once after Telegram WebApp loads
-        return;
+        if (retryCount < MAX_RETRIES) {
+          console.warn(`⚠️ initData unavailable — retrying in 500ms (${retryCount + 1}/${MAX_RETRIES})`);
+          setTimeout(() => performInitialGameSync(retryCount + 1), 500);
+          return;
+        } else {
+          // Exhausted retries — fall back to using telegramId directly.
+          // The server can use telegramId from the payload as a fallback for identification.
+          console.warn("⚠️ initData exhausted after retries — falling back to telegramId only");
+          hasInitialSyncRun.current = true;
+          console.log("🔄 CLIENT: EMITTING userJoinedGame with telegramId fallback, gameId:", gameId);
+          socket.emit("userJoinedGame", { initData: null, gameId, telegramId });
+          return;
+        }
       }
       hasInitialSyncRun.current = true;
       console.log("🔄 CLIENT: EMITTING userJoinedGame with initData, gameId:", gameId);
