@@ -114,6 +114,8 @@ function Bingo({ isBlackToggleOn, setCartelaIdInParent, cartelaIds, socket, othe
 
   // ─── Main socket-listener effect ──────────────────────────────────────────
   useEffect(() => {
+    console.log("🎬 CLIENT: Main useEffect RUNNING - telegramId:", telegramId, "gameId:", gameId);
+    
     if (!telegramId || !gameId) {
       console.error("Missing telegramId or gameId for game page.");
       navigate("/");
@@ -167,9 +169,16 @@ function Bingo({ isBlackToggleOn, setCartelaIdInParent, cartelaIds, socket, othe
     };
 
     const handleInitialCardStates = (data) => {
+      console.log("📥 CLIENT: initialCardStates received", JSON.stringify(data));
+      console.log("📥 CLIENT: telegramId:", telegramId, "gameId:", gameId);
+      
       const { takenCards } = data;
+      console.log("📥 CLIENT: takenCards received:", JSON.stringify(takenCards));
 
-      if (lastRequestIdRef.current > 0) return;
+      if (lastRequestIdRef.current > 0) {
+        console.log("📥 CLIENT: Skipping initialCardStates - lastRequestIdRef > 0");
+        return;
+      }
 
       const newOtherSelectedCardsMap = {};
       const myRestoredCardIds = [];
@@ -183,7 +192,11 @@ function Bingo({ isBlackToggleOn, setCartelaIdInParent, cartelaIds, socket, othe
           newOtherSelectedCardsMap[takenByTelegramId].push(Number(cardId));
         }
       }
+      console.log("📥 CLIENT: myRestoredCardIds:", JSON.stringify(myRestoredCardIds));
+      console.log("📥 CLIENT: newOtherSelectedCardsMap:", JSON.stringify(newOtherSelectedCardsMap));
+      
       setOtherSelectedCards(newOtherSelectedCardsMap);
+      console.log("📥 CLIENT: setOtherSelectedCards called");
 
       // ─── FIX P2: Use localStorage instead of sessionStorage ───────────────
       // sessionStorage is cleared when the Telegram WebApp closes and reopens,
@@ -193,30 +206,58 @@ function Bingo({ isBlackToggleOn, setCartelaIdInParent, cartelaIds, socket, othe
       restoreSelectedCartelas(myRestoredCardIds);
       setCartelaIdInParent(myRestoredCardIds);
       localStorage.setItem(`mySelectedCardIds:${gameId}`, myRestoredCardIds.join(","));
+      console.log("📥 CLIENT: Restored", myRestoredCardIds.length, "cards from server");
     } else {
       // Server says no cards held — clear everything including stale localStorage
       setSelectedCartelas([]);
       setCartelaIdInParent([]);
       localStorage.removeItem(`mySelectedCardIds:${gameId}`);
+      console.log("📥 CLIENT: No cards on server - cleared local state");
     }
-    
+    console.log("📥 CLIENT: handleInitialCardStates COMPLETE");
     };
 
 // In performInitialGameSync, before emitting:
     const performInitialGameSync = () => {
-      if (hasInitialSyncRun.current || !socket.connected || !telegramId || !gameId) return;
+      console.log("🔄 CLIENT: performInitialGameSync called");
+      console.log("🔄 CLIENT: hasInitialSyncRun.current:", hasInitialSyncRun.current);
+      console.log("🔄 CLIENT: socket.connected:", socket?.connected);
+      console.log("🔄 CLIENT: telegramId:", telegramId);
+      console.log("🔄 CLIENT: gameId:", gameId);
+      
+      if (hasInitialSyncRun.current) {
+        console.log("🔄 CLIENT: Skipping - hasInitialSyncRun already true");
+        return;
+      }
+      if (!socket?.connected) {
+        console.log("🔄 CLIENT: Skipping - socket not connected");
+        return;
+      }
+      if (!telegramId) {
+        console.log("🔄 CLIENT: Skipping - no telegramId");
+        return;
+      }
+      if (!gameId) {
+        console.log("🔄 CLIENT: Skipping - no gameId");
+        return;
+      }
+      
       const initData = getTelegramInitData();
+      console.log("🔄 CLIENT: initData:", initData ? "present" : "NULL");
+      
       if (!initData) {
         console.warn("⚠️ initData unavailable — retrying in 500ms");
         setTimeout(performInitialGameSync, 500); // retry once after Telegram WebApp loads
         return;
       }
       hasInitialSyncRun.current = true;
+      console.log("🔄 CLIENT: EMITTING userJoinedGame with initData, gameId:", gameId);
       socket.emit("userJoinedGame", { initData, gameId });
     };
 
     // ─── FIX P2: Socket disconnect/reconnect overlay handlers ────────────────
     const handleSocketDisconnect = () => {
+      console.log("🔌 CLIENT: socket DISCONNECTED");
       setSocketConnected(false);
       hasInitialSyncRun.current = false;
       let secs = 0;
@@ -230,6 +271,7 @@ function Bingo({ isBlackToggleOn, setCartelaIdInParent, cartelaIds, socket, othe
     };
 
     const handleSocketReconnect = () => {
+      console.log("🔌 CLIENT: socket RECONNECTED");
       setSocketConnected(true);
       setReconnectSeconds(0);
       if (reconnectTimerRef.current) {
@@ -355,8 +397,14 @@ function Bingo({ isBlackToggleOn, setCartelaIdInParent, cartelaIds, socket, othe
     const handleCountdownTick = ({ countdown }) => setCountdown(countdown);
 
     const handleConnectForSync = () => {
+      console.log("🔌 CLIENT: socket CONNECT event");
       handleSocketReconnect();
-      if (!hasInitialSyncRun.current) performInitialGameSync();
+      if (!hasInitialSyncRun.current) {
+        console.log("🔌 CLIENT: calling performInitialGameSync from connect handler");
+        performInitialGameSync();
+      } else {
+        console.log("🔌 CLIENT: skipping performInitialGameSync - already ran");
+      }
     };
 
     socket.on("connect",    handleConnectForSync);
@@ -364,7 +412,9 @@ function Bingo({ isBlackToggleOn, setCartelaIdInParent, cartelaIds, socket, othe
     socket.on("countdownTick", handleCountdownTick);
   
 
+    console.log("🎬 CLIENT: About to call performInitialGameSync at end of effect");
     performInitialGameSync();
+    console.log("🎬 CLIENT: About to call fetchUserData");
     fetchUserData();
 
     return () => {

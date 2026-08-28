@@ -18,10 +18,12 @@ export default function Layout({
   useEffect(() => {
     const currentPath = location.pathname;
     const prevPath = prevPathRef.current;
+    console.log("🧭 LAYOUT: route check - currentPath:", currentPath, "prevPath:", prevPath);
 
     const isEnteringRoot = currentPath === "/" && prevPath !== "/";
     // Check if we are leaving the home page to a page that IS NOT the game
     const isLeavingRootToNonGame = prevPath === "/" && currentPath !== "/" && !currentPath.startsWith("/game");
+    console.log("🧭 LAYOUT: isEnteringRoot:", isEnteringRoot, "isLeavingRootToNonGame:", isLeavingRootToNonGame);
 
     // --- 1. Clear session storage ONLY when entering "/" (Soft Reload) ---
     if (isEnteringRoot) {
@@ -40,7 +42,7 @@ export default function Layout({
 
     // --- 2. Emit only when leaving "/" to a NON-/game route (via React Router) ---
     if (isLeavingRootToNonGame) {
-      //console.log("✅ LAYOUT EMIT: unselectCardOnLeave on route change!");
+      console.log("✅ LAYOUT EMIT: unselectCardOnLeave on route change!");
       if (socket && socket.connected) {
         socket.emit("unselectCardOnLeave", {
           gameId,
@@ -64,7 +66,7 @@ export default function Layout({
     // --- 3. Emit again ONLY if closing tab or refreshing while on "/" (beforeunload event) ---
     const handleBeforeUnload = () => {
       if (location.pathname === "/") {
-        //console.log("📤 LAYOUT EMIT: unselectCardOnLeave on beforeunload!");
+        console.log("📤 LAYOUT EMIT: unselectCardOnLeave on beforeunload!");
         if (socket && socket.connected) {
           socket.emit("unselectCardOnLeave", {
             gameId,
