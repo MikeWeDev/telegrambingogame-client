@@ -84,7 +84,7 @@ function Bingo({ isBlackToggleOn, setCartelaIdInParent, cartelaIds, socket, othe
   const refreshBtnBg    = isBlackToggleOn ? "bg-blue-700"  : "bg-blue-500";
   const startBtnEnabledBg  = isBlackToggleOn ? "bg-orange-600 hover:bg-orange-700" : "bg-orange-500 hover:bg-orange-600";
   const startBtnDisabledBg = "bg-gray-600 cursor-not-allowed";
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || '';
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "https://telegrambingogame-server.onrender.com";
 
   const fetchUserData = async () => {
     try {
